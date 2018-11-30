@@ -4,6 +4,8 @@ import { AppLoading, Asset, Font, Icon } from 'expo'
 import AppNavigator from './navigation/AppNavigator'
 import styled from 'styled-components'
 
+import './config'
+
 const AppView = styled.View`
   flex: 1;
   background-color: #fff;
