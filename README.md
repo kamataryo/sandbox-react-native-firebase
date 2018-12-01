@@ -20,6 +20,21 @@ $ yarn
 
 4. At Firebase console, follow [Development] -> [Authentication] -> [sign-in method] and enable the email/password login provider
 
+5. Set database rules. follow [Development] -> [Database] -> [rules] and add rule described below
+
+   ```json
+   {
+     "rules": {
+       "users": {
+         "$uid": {
+           ".read": "$uid === auth.uid",
+           ".write": "$uid === auth.uid"
+         }
+       }
+     }
+   }
+   ```
+
 ## tips
 
 - list Android Virtual Devices

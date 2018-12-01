@@ -1,4 +1,6 @@
 import React from 'react'
+import PropTypes from 'prop-types'
+import { connect } from 'react-redux'
 import {
   Image,
   Platform,
@@ -15,12 +17,22 @@ const imageSource = __DEV__
   ? require('../../assets/images/robot-dev.png')
   : require('../../assets/images/robot-prod.png')
 
-export default class HomeScreen extends React.Component {
+export class HomeScreen extends React.Component {
   static navigationOptions = {
     header: null
   }
 
+  /**
+   * propTypes
+   * @type {object}
+   */
+  static propTypes = {
+    authentication: PropTypes.any
+  }
+
   render() {
+    const { authentication } = this.props
+
     return (
       <Container>
         <ScrollView contentContainerStyle={styles.contentContainer}>
@@ -70,6 +82,14 @@ export default class HomeScreen extends React.Component {
               navigation/MainTabNavigator.js
             </MonoText>
           </View>
+        </View>
+
+        <View>
+          <Text>
+            {authentication
+              ? 'signed in with Firebase!'
+              : 'not signed in with Firebase...'}
+          </Text>
         </View>
       </Container>
     )
@@ -195,3 +215,17 @@ const styles = StyleSheet.create({
     color: '#2e78b7'
   }
 })
+
+/**
+ * map state to props
+ * @param  {object} state    state tree
+ * @param  {object} ownProps own props
+ * @return {object}          state props
+ */
+const mapStateToProps = (state, ownProps) => {
+  return {
+    authentication: state.authentication.data
+  }
+}
+
+export default connect(mapStateToProps)(HomeScreen)

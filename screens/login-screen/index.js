@@ -1,4 +1,6 @@
 import React from 'react'
+import PropTypes from 'prop-types'
+import { connect } from 'react-redux'
 import { Text, View } from 'react-native'
 import { Container } from './styled'
 import {
@@ -8,17 +10,27 @@ import {
   Button
 } from 'react-native-elements'
 import firebase from 'firebase'
+import { createActions as createAuthenticationActions } from '../../reducers/authentication'
 
-export default class LoginScreen extends React.Component {
+export class LoginScreen extends React.Component {
   static navigationOptions = {
     header: null
+  }
+
+  /**
+   * propTypes
+   * @type {object}
+   */
+  static propTypes = {
+    authentication: PropTypes.any.isRequired,
+    setAuthentication: PropTypes.func.isRequired,
+    unsetAuthentication: PropTypes.func.isRequired
   }
 
   state = {
     email: '',
     password: '',
-    status: 'not_yet',
-    authentication: false
+    status: 'not_yet'
   }
 
   update = key => value => this.setState({ [key]: value, status: 'not_yet' })
@@ -30,13 +42,13 @@ export default class LoginScreen extends React.Component {
     firebase
       .auth()
       .createUserWithEmailAndPassword(email, password)
-      .then(authentication =>
+      .then(authentication => {
+        this.props.setAuthentication(authentication)
         this.setState({
-          authentication,
           status: 'success',
           message: 'Successfully Signed up!'
         })
-      )
+      })
       .catch(err => this.setState({ status: 'failure', message: err.message }))
   }
 
@@ -47,13 +59,13 @@ export default class LoginScreen extends React.Component {
     firebase
       .auth()
       .signInWithEmailAndPassword(email, password)
-      .then(authentication =>
+      .then(authentication => {
+        this.props.setAuthentication(authentication)
         this.setState({
-          authentication,
           status: 'success',
           message: 'Successfully Signed in!'
         })
-      )
+      })
       .catch(err => this.setState({ status: 'failure', message: err.message }))
   }
 
@@ -61,16 +73,18 @@ export default class LoginScreen extends React.Component {
     firebase
       .auth()
       .signOut()
-      .then(() =>
+      .then(() => {
+        this.props.unsetAuthentication()
         this.setState({
           status: 'success',
           message: 'Successfully Signed out!'
         })
-      )
+      })
       .catch(err => this.setState({ status: 'failure', message: err.message }))
 
   render() {
     const { email, password, status, message } = this.state
+
     return (
       <Container>
         <View>
@@ -109,3 +123,33 @@ export default class LoginScreen extends React.Component {
     )
   }
 }
+
+/**
+ * map state to props
+ * @param  {object} state    state tree
+ * @param  {object} ownProps own props
+ * @return {object}          state props
+ */
+const mapStateToProps = (state, ownProps) => {
+  return {
+    authentication: state.authentication.data
+  }
+}
+
+/**
+ * map dispatch to props
+ * @param  {function} dispatch dispatcher
+ * @param  {object}   ownProps own props
+ * @return {object}            dispatch props
+ */
+const mapDispatchToProps = (dispatch, ownProps) => {
+  return {
+    setAuthentication: auth => dispatch(createAuthenticationActions.set(auth)),
+    unsetAuthentication: () => dispatch(createAuthenticationActions.unset())
+  }
+}
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(LoginScreen)
