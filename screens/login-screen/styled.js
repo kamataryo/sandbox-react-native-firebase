@@ -5,3 +5,7 @@ export const Container = styled.ScrollView`
   background-color: #fff;
   padding-top: 50px;
 `
+
+export const LoginItem = styled.View`
+  margin-bottom: 10px;
+`

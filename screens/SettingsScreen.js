@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { View } from 'react-native'
+import { View, Text } from 'react-native'
 import { ExpoConfigView } from '@expo/samples'
 import firebase from 'firebase'
 import {
@@ -13,7 +13,7 @@ import {
 
 export class SettingsScreen extends React.Component {
   static navigationOptions = {
-    title: 'app.json'
+    title: 'Settings'
   }
 
   /**
@@ -40,14 +40,10 @@ export class SettingsScreen extends React.Component {
   }
 
   setListener = () => {
-    console.log('set listener')
     const userId = firebase.auth().currentUser.uid
     const ref = firebase.database().ref('users/' + userId)
-    ref.on(
-      'value',
-      snapshot =>
-        console.log('firbase on value') ||
-        this.setState({ userData: snapshot.val() || {} })
+    ref.on('value', snapshot =>
+      this.setState({ userData: snapshot.val() || {} })
     )
     return () => ref.off()
   }
@@ -94,25 +90,35 @@ export class SettingsScreen extends React.Component {
     ref.set(userData).then(() => console.log('firebase set'))
   }
 
+  renderProfileConfig = () => {
+    const { userData } = this.state
+    return (
+      <View>
+        <FormLabel>{'username'}</FormLabel>
+        <FormInput
+          value={userData.username || ''}
+          onChangeText={this.update('username')}
+          autoCapitalize={'none'}
+          autoCorrect={false}
+        />
+        <Button onPress={this.onPress} title={'UPDATE'} />
+      </View>
+    )
+  }
+
   render() {
     /* Go ahead and delete ExpoConfigView and replace it with your
      * content, we just wanted to give you a quick view of your config */
 
-    const { userData } = this.state
+    const { authentication } = this.props
 
     return (
       <View>
-        <View>
-          <FormLabel>{'username'}</FormLabel>
-          <FormInput
-            value={userData.username || ''}
-            onChangeText={this.update('username')}
-            autoCapitalize={'none'}
-            autoCorrect={false}
-          />
-          <Button onPress={this.onPress} title={'UPDATE'} />
-        </View>
-        <ExpoConfigView />
+        {authentication ? (
+          this.renderProfileConfig()
+        ) : (
+          <Text>{'You are not signed in.'}</Text>
+        )}
       </View>
     )
   }

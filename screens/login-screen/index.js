@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { Text, View } from 'react-native'
-import { Container } from './styled'
+import { Container, LoginItem } from './styled'
 import {
   FormLabel,
   FormInput,
@@ -22,7 +22,9 @@ export class LoginScreen extends React.Component {
    * @type {object}
    */
   static propTypes = {
+    // stateProps
     authentication: PropTypes.any.isRequired,
+    // dispatchProps
     setAuthentication: PropTypes.func.isRequired,
     unsetAuthentication: PropTypes.func.isRequired
   }
@@ -82,12 +84,11 @@ export class LoginScreen extends React.Component {
       })
       .catch(err => this.setState({ status: 'failure', message: err.message }))
 
-  render() {
+  renderInputs = () => {
     const { email, password, status, message } = this.state
-
     return (
-      <Container>
-        <View>
+      <View>
+        <LoginItem>
           <FormLabel>{'email'}</FormLabel>
           <FormInput
             value={email}
@@ -97,9 +98,6 @@ export class LoginScreen extends React.Component {
             autoFocus={true}
             keyboardType={'email-address'}
           />
-        </View>
-
-        <View>
           <FormLabel>{'password'}</FormLabel>
           <FormInput
             value={password}
@@ -110,11 +108,31 @@ export class LoginScreen extends React.Component {
             keyboardType={'default'}
             secureTextEntry={true}
           />
-        </View>
+        </LoginItem>
 
-        <Button onPress={this.onSignUpPress} title={'SIGNUP'} />
-        <Button onPress={this.onSignInPress} title={'SIGNIN'} />
-        <Button onPress={this.onSignOutPress} title={'SIGNOUT'} />
+        <LoginItem>
+          <Button onPress={this.onSignUpPress} title={'SIGNUP'} />
+        </LoginItem>
+
+        <LoginItem>
+          <Button onPress={this.onSignInPress} title={'SIGNIN'} />
+        </LoginItem>
+      </View>
+    )
+  }
+
+  renderSignOut = () => (
+    <Button onPress={this.onSignOutPress} title={'SIGNOUT'} />
+  )
+
+  render() {
+    const { email, password, status, message } = this.state
+    const { authentication } = this.props
+
+    return (
+      <Container>
+        {authentication ? this.renderSignOut() : this.renderInputs()}
+
         {status === 'failure' && (
           <FormValidationMessage>{message}</FormValidationMessage>
         )}
