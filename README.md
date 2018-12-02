@@ -37,14 +37,14 @@ $ yarn
 
 ## tips
 
-- list Android Virtual Devices
+- list devices
 
   ```shell
-  $ emulator -list-avds
+  $ emulator -list-avds # Android
+  $ instruments -s devices # iOS
   ```
 
-- launch an Android Virtual Device
-
+- launch an Android device
   ```shell
   $ emulator -avd pixel2
   ```

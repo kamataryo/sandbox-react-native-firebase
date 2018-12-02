@@ -8,7 +8,8 @@ import {
   FormLabel,
   FormInput,
   FormValidationMessage,
-  Button
+  Button,
+  CheckBox
 } from 'react-native-elements'
 
 export class SettingsScreen extends React.Component {
@@ -79,6 +80,13 @@ export class SettingsScreen extends React.Component {
   update = key => value =>
     this.setState({ userData: { ...this.state.userData, [key]: value } })
 
+  updateRole = role => () => {
+    console.log(role)
+    const prevRole = this.state.userData.roles || {}
+    const nextRole = { ...prevRole, [role]: !prevRole[role] }
+    this.setState({ userData: { ...this.state.userData, roles: nextRole } })
+  }
+
   onPress = () => {
     const { userData } = this.state
     const { authentication } = this.props
@@ -92,6 +100,7 @@ export class SettingsScreen extends React.Component {
 
   renderProfileConfig = () => {
     const { userData } = this.state
+    const roles = userData.roles || {}
     return (
       <View>
         <FormLabel>{'username'}</FormLabel>
@@ -101,6 +110,23 @@ export class SettingsScreen extends React.Component {
           autoCapitalize={'none'}
           autoCorrect={false}
         />
+
+        <CheckBox
+          checked={!!roles['role-a']}
+          title={'Role A'}
+          onPress={this.updateRole('role-a')}
+        />
+        <CheckBox
+          checked={!!roles['role-b']}
+          title={'Role B'}
+          onPress={this.updateRole('role-b')}
+        />
+        <CheckBox
+          checked={!!roles['role-c']}
+          title={'Role C'}
+          onPress={this.updateRole('role-c')}
+        />
+
         <Button onPress={this.onPress} title={'UPDATE'} />
       </View>
     )
