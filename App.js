@@ -1,12 +1,14 @@
 import React from 'react'
 import { Platform, StatusBar, StyleSheet, View } from 'react-native'
+
 import { AppLoading, Asset, Font, Icon } from 'expo'
 import AppNavigator from './navigation/AppNavigator'
 import styled from 'styled-components'
 import './config'
 
 import { Provider } from 'react-redux'
-import store from './store'
+import { PersistGate } from 'redux-persist/integration/react'
+import { store, persistor } from './store'
 
 const AppView = styled.View`
   flex: 1;
@@ -59,7 +61,9 @@ export default class App extends React.Component {
 
     return (
       <Provider store={store}>
-        {loading ? this.renderLoading() : this.renderApp()}
+        <PersistGate loading={null} persistor={persistor}>
+          {loading ? this.renderLoading() : this.renderApp()}
+        </PersistGate>
       </Provider>
     )
   }
