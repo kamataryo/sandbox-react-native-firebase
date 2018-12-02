@@ -9,7 +9,8 @@ import {
   FormInput,
   FormValidationMessage,
   Button,
-  CheckBox
+  CheckBox,
+  Avatar
 } from 'react-native-elements'
 
 export class SettingsScreen extends React.Component {
@@ -103,6 +104,16 @@ export class SettingsScreen extends React.Component {
     const roles = userData.roles || {}
     return (
       <View>
+        <Avatar
+          size={'large'}
+          rounded
+          source={{
+            uri:
+              'https://s3.amazonaws.com/uifaces/faces/twitter/ladylexy/128.jpg'
+          }}
+          onPress={() => console.log('Works!')}
+          activeOpacity={0.7}
+        />
         <FormLabel>{'username'}</FormLabel>
         <FormInput
           value={userData.username || ''}

@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { Text, View } from 'react-native'
+import { Text, View, TouchableOpacity } from 'react-native'
 import { Container, LoginItem } from './styled'
 import {
   FormLabel,
@@ -50,6 +50,7 @@ export class LoginScreen extends React.Component {
           status: 'success',
           message: 'Successfully Signed up!'
         })
+        authentication.sendEmailVerification()
       })
       .catch(err => this.setState({ status: 'failure', message: err.message }))
   }
@@ -83,6 +84,9 @@ export class LoginScreen extends React.Component {
         })
       })
       .catch(err => this.setState({ status: 'failure', message: err.message }))
+
+  onVerificationEmailRequestPress = () =>
+    firebase.auth().currentUser.sendEmailVerification()
 
   renderInputs = () => {
     const { email, password, status, message } = this.state
@@ -122,13 +126,19 @@ export class LoginScreen extends React.Component {
   }
 
   renderSignOut = () => (
-    <Button onPress={this.onSignOutPress} title={'SIGNOUT'} />
+    <View>
+      <Button onPress={this.onSignOutPress} title={'SIGNOUT'} />
+      {this.props.authentication.user.emailVerified || (
+        <TouchableOpacity onPress={this.onVerificationEmailRequestPress}>
+          <Text>{'send verification email'}</Text>
+        </TouchableOpacity>
+      )}
+    </View>
   )
 
   render() {
     const { email, password, status, message } = this.state
     const { authentication } = this.props
-
     return (
       <Container>
         {authentication ? this.renderSignOut() : this.renderInputs()}
