@@ -5,11 +5,11 @@ import { reducer as authentication } from './reducers/authentication'
 
 const persistConfig = {
   key: 'root',
-  storage
+  storage,
 }
 
 const rootReducer = combineReducers({
-  authentication
+  authentication,
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

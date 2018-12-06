@@ -7,14 +7,14 @@ import {
   FormLabel,
   FormInput,
   FormValidationMessage,
-  Button
+  Button,
 } from 'react-native-elements'
 import firebase from 'firebase'
 import { createActions as createAuthenticationActions } from '../../reducers/authentication'
 
 export class LoginScreen extends React.Component {
   static navigationOptions = {
-    header: null
+    header: null,
   }
 
   /**
@@ -26,13 +26,13 @@ export class LoginScreen extends React.Component {
     authentication: PropTypes.any.isRequired,
     // dispatchProps
     setAuthentication: PropTypes.func.isRequired,
-    unsetAuthentication: PropTypes.func.isRequired
+    unsetAuthentication: PropTypes.func.isRequired,
   }
 
   state = {
     email: '',
     password: '',
-    status: 'not_yet'
+    status: 'not_yet',
   }
 
   update = key => value => this.setState({ [key]: value, status: 'not_yet' })
@@ -43,12 +43,15 @@ export class LoginScreen extends React.Component {
 
     firebase
       .auth()
-      .createUserWithEmailAndPassword(email, password)
+      .setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      .then(() =>
+        firebase.auth().createUserWithEmailAndPassword(email, password),
+      )
       .then(authentication => {
         this.props.setAuthentication(authentication)
         this.setState({
           status: 'success',
-          message: 'Successfully Signed up!'
+          message: 'Successfully Signed up!',
         })
         authentication.sendEmailVerification()
       })
@@ -66,7 +69,7 @@ export class LoginScreen extends React.Component {
         this.props.setAuthentication(authentication)
         this.setState({
           status: 'success',
-          message: 'Successfully Signed in!'
+          message: 'Successfully Signed in!',
         })
       })
       .catch(err => this.setState({ status: 'failure', message: err.message }))
@@ -80,7 +83,7 @@ export class LoginScreen extends React.Component {
         this.props.unsetAuthentication()
         this.setState({
           status: 'success',
-          message: 'Successfully Signed out!'
+          message: 'Successfully Signed out!',
         })
       })
       .catch(err => this.setState({ status: 'failure', message: err.message }))
@@ -95,31 +98,31 @@ export class LoginScreen extends React.Component {
         <LoginItem>
           <FormLabel>{'email'}</FormLabel>
           <FormInput
-            value={email}
-            onChangeText={this.update('email')}
-            autoCapitalize={'none'}
-            autoCorrect={false}
-            autoFocus={true}
-            keyboardType={'email-address'}
+            value={ email }
+            onChangeText={ this.update('email') }
+            autoCapitalize={ 'none' }
+            autoCorrect={ false }
+            autoFocus
+            keyboardType={ 'email-address' }
           />
           <FormLabel>{'password'}</FormLabel>
           <FormInput
-            value={password}
-            onChangeText={this.update('password')}
-            autoCapitalize={'none'}
-            autoCorrect={false}
-            autoFocus={false}
-            keyboardType={'default'}
-            secureTextEntry={true}
+            value={ password }
+            onChangeText={ this.update('password') }
+            autoCapitalize={ 'none' }
+            autoCorrect={ false }
+            autoFocus={ false }
+            keyboardType={ 'default' }
+            secureTextEntry
           />
         </LoginItem>
 
         <LoginItem>
-          <Button onPress={this.onSignUpPress} title={'SIGNUP'} />
+          <Button onPress={ this.onSignUpPress } title={ 'SIGNUP' } />
         </LoginItem>
 
         <LoginItem>
-          <Button onPress={this.onSignInPress} title={'SIGNIN'} />
+          <Button onPress={ this.onSignInPress } title={ 'SIGNIN' } />
         </LoginItem>
       </View>
     )
@@ -127,9 +130,9 @@ export class LoginScreen extends React.Component {
 
   renderSignOut = () => (
     <View>
-      <Button onPress={this.onSignOutPress} title={'SIGNOUT'} />
+      <Button onPress={ this.onSignOutPress } title={ 'SIGNOUT' } />
       {this.props.authentication.user.emailVerified || (
-        <TouchableOpacity onPress={this.onVerificationEmailRequestPress}>
+        <TouchableOpacity onPress={ this.onVerificationEmailRequestPress }>
           <Text>{'send verification email'}</Text>
         </TouchableOpacity>
       )}
@@ -160,7 +163,7 @@ export class LoginScreen extends React.Component {
  */
 const mapStateToProps = (state, ownProps) => {
   return {
-    authentication: state.authentication.data
+    authentication: state.authentication.data,
   }
 }
 
@@ -173,11 +176,11 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch, ownProps) => {
   return {
     setAuthentication: auth => dispatch(createAuthenticationActions.set(auth)),
-    unsetAuthentication: () => dispatch(createAuthenticationActions.unset())
+    unsetAuthentication: () => dispatch(createAuthenticationActions.unset()),
   }
 }
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 )(LoginScreen)

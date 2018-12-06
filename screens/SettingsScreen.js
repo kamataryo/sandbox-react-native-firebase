@@ -1,6 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
+import { Constants, ImagePicker, Permissions } from 'expo'
 import { View, Text } from 'react-native'
 import { ExpoConfigView } from '@expo/samples'
 import firebase from 'firebase'
@@ -10,12 +11,20 @@ import {
   FormValidationMessage,
   Button,
   CheckBox,
-  Avatar
+  Avatar,
 } from 'react-native-elements'
+
+const convertBlobToBase64 = blob =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = reject
+    reader.onload = () => resolve(reader.result)
+    reader.readAsDataURL(blob)
+  })
 
 export class SettingsScreen extends React.Component {
   static navigationOptions = {
-    title: 'Settings'
+    title: 'Settings',
   }
 
   /**
@@ -23,7 +32,15 @@ export class SettingsScreen extends React.Component {
    * @type {object}
    */
   static propTypes = {
-    authentication: PropTypes.any
+    authentication: PropTypes.any,
+  }
+
+  /**
+   * defaultProps
+   * @type {object}
+   */
+  static defaultProps = {
+    authentication: false,
   }
 
   /**
@@ -33,21 +50,16 @@ export class SettingsScreen extends React.Component {
    */
   constructor(props) {
     super(props)
-    if (props.authentication) {
-      const removeListner = this.setListener()
-      this.state = { userData: {}, listnerReady: true, removeListner }
-    } else {
-      this.state = { userData: {}, listnerReady: false }
-    }
+    this.state = { userData: {}, listnerReady: !!props.authentication }
   }
 
-  setListener = () => {
-    const userId = firebase.auth().currentUser.uid
-    const ref = firebase.database().ref('users/' + userId)
-    ref.on('value', snapshot =>
-      this.setState({ userData: snapshot.val() || {} })
-    )
-    return () => ref.off()
+  /**
+   * componentDidMount
+   * @return {void}
+   */
+  componentDidMount() {
+    const removeListner = this.setListener()
+    this.setState({ removeListner })
   }
 
   /**
@@ -57,12 +69,12 @@ export class SettingsScreen extends React.Component {
    * @param  {object} snapshot  snapshot
    * @return {void}
    */
-  componentDidUpdate(prevProps, prevState, snapshot) {
+  componentDidUpdate(prevProps) {
     const { listnerReady } = this.state
 
     if (
       !listnerReady &&
-      this.props.authentcation &&
+      this.props.authentication &&
       !prevProps.authentication
     ) {
       const removeListner = this.setListener()
@@ -78,11 +90,24 @@ export class SettingsScreen extends React.Component {
     typeof this.state.removeListner === 'function' && this.state.removeListner()
   }
 
+  setListener = () => {
+    // metadata
+    const { currentUser } = firebase.auth()
+    const userId = currentUser.uid
+    const userDataRef = firebase.database().ref('users/' + userId)
+    this.setState({ user: currentUser })
+
+    userDataRef.on('value', snapshot =>
+      this.setState({ userData: snapshot.val() || {} }),
+    )
+
+    return () => userDataRef.off()
+  }
+
   update = key => value =>
     this.setState({ userData: { ...this.state.userData, [key]: value } })
 
   updateRole = role => () => {
-    console.log(role)
     const prevRole = this.state.userData.roles || {}
     const nextRole = { ...prevRole, [role]: !prevRole[role] }
     this.setState({ userData: { ...this.state.userData, roles: nextRole } })
@@ -99,46 +124,79 @@ export class SettingsScreen extends React.Component {
     ref.set(userData).then(() => console.log('firebase set'))
   }
 
+  pickImage = async () => {
+    const { status: cameraRollPerm } = await Permissions.askAsync(
+      Permissions.CAMERA_ROLL,
+    )
+
+    // only if user allows permission to camera roll
+    if (cameraRollPerm === 'granted') {
+      const { uri } = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+      })
+
+      if (!uri) {
+        return
+      }
+
+      const uriParts = uri.split('.')
+      const fileType = uriParts[uriParts.length - 1]
+
+      // Create a Storage Ref w/ username
+      const imageRef = firebase
+        .storage()
+        .ref()
+        .child(`users/${this.state.user.uid}/profile.image`)
+
+      const blob = await fetch(uri).then(res => res.blob())
+
+      // Upload file
+      imageRef
+        .put(blob, { fileType })
+        .then(console.log)
+        .catch(console.error)
+    }
+  }
+
   renderProfileConfig = () => {
-    const { userData } = this.state
+    const { userData, user } = this.state
     const roles = userData.roles || {}
+
     return (
       <View>
         <Avatar
-          size={'large'}
+          xlarge
           rounded
-          source={{
-            uri:
-              'https://s3.amazonaws.com/uifaces/faces/twitter/ladylexy/128.jpg'
-          }}
-          onPress={() => console.log('Works!')}
-          activeOpacity={0.7}
+          source={ user && { uri: user.photoUrl } }
+          onPress={ this.pickImage }
+          activeOpacity={ 0.7 }
         />
         <FormLabel>{'username'}</FormLabel>
         <FormInput
-          value={userData.username || ''}
-          onChangeText={this.update('username')}
-          autoCapitalize={'none'}
-          autoCorrect={false}
+          value={ userData.username || '' }
+          onChangeText={ this.update('username') }
+          autoCapitalize={ 'none' }
+          autoCorrect={ false }
         />
 
         <CheckBox
-          checked={!!roles['role-a']}
-          title={'Role A'}
-          onPress={this.updateRole('role-a')}
+          checked={ !!roles['role-a'] }
+          title={ 'Role A' }
+          onPress={ this.updateRole('role-a') }
         />
         <CheckBox
-          checked={!!roles['role-b']}
-          title={'Role B'}
-          onPress={this.updateRole('role-b')}
+          checked={ !!roles['role-b'] }
+          title={ 'Role B' }
+          onPress={ this.updateRole('role-b') }
         />
         <CheckBox
-          checked={!!roles['role-c']}
-          title={'Role C'}
-          onPress={this.updateRole('role-c')}
+          checked={ !!roles['role-c'] }
+          title={ 'Role C' }
+          onPress={ this.updateRole('role-c') }
         />
 
-        <Button onPress={this.onPress} title={'UPDATE'} />
+        <Button onPress={ this.onPress } title={ 'UPDATE' } />
       </View>
     )
   }
@@ -167,9 +225,9 @@ export class SettingsScreen extends React.Component {
  * @param  {object} ownProps own props
  * @return {object}          state props
  */
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = state => {
   return {
-    authentication: state.authentication.data
+    authentication: state.authentication.data,
   }
 }
 
